@@ -1,10 +1,11 @@
 class Mapnik < Formula
   desc "Toolkit for developing mapping applications"
   homepage "https://mapnik.org/"
-  url "https://github.com/mapnik/mapnik/releases/download/v3.0.24/mapnik-v3.0.24.tar.bz2"
-  sha256 "75520a98ff688f48e4dd36e86199530ea084b296f2d4972478db1fcb3475d71c"
+  url "https://github.com/mapnik/mapnik/releases/download/v3.1.0/mapnik-v3.1.0.tar.bz2"
+  sha256 "43d76182d2a975212b4ad11524c74e577576c11039fdab5286b828397d8e6261"
   license "LGPL-2.1-or-later"
-  head "https://github.com/mapnik/mapnik.git"
+  revision 5
+  head "https://github.com/mapnik/mapnik.git", branch: "master"
 
   livecheck do
     url :stable
@@ -12,14 +13,16 @@ class Mapnik < Formula
   end
 
   bottle do
-    rebuild 2
-    sha256 cellar: :any, arm64_big_sur: "ae4b934d41a83aae33c9683075eaead205b6394b6907be7c9807bd6dd335bb3c"
-    sha256 cellar: :any, big_sur:       "48a0c9620a9ab8b0bdc9a5dce860b10929131fd4111d7867bb65b3edc3e5801f"
-    sha256 cellar: :any, catalina:      "f729bbdbe769cf517ac2a13ee2ef427b37ff0a6f81a57ad80f1469daf0352404"
-    sha256 cellar: :any, mojave:        "0faa41637365731b2208661702c1c4f3acef2d37e8733fbd063dc72d45b53f29"
+    sha256 cellar: :any,                 arm64_monterey: "5821727e6bd5b456ad80ba0d1dd8feea6b42de7af942fccb0279f0a24e23c003"
+    sha256 cellar: :any,                 arm64_big_sur:  "f969998d9b693da26699705c691d75b4cab8fa22b091d56a47e3ef92688fd8e0"
+    sha256 cellar: :any,                 monterey:       "bd44d13a5e833ea36ae35e16bb56e9bf4e90134b5565fa1bd6adc13a1e1187cf"
+    sha256 cellar: :any,                 big_sur:        "9234f5235b6586f049f18a8812f676262009811b0c32eb14171901dbd64ec4b5"
+    sha256 cellar: :any,                 catalina:       "2840371dd8a84e29fe883e616c937962b32b1bf34066c13fa6ada13bd75cda3c"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "08332dc59b66ceb70a6ff51a7d72826a3a28b109ee9eea0d69513fb4b38a7924"
   end
 
   depends_on "pkg-config" => :build
+  depends_on "python@3.9" => :build
   depends_on "boost"
   depends_on "cairo"
   depends_on "freetype"
@@ -30,18 +33,13 @@ class Mapnik < Formula
   depends_on "libpng"
   depends_on "libtiff"
   depends_on "postgresql"
-  depends_on "proj"
+  depends_on "proj@7"
   depends_on "webp"
-
-  # Fix for Boost >= 1.75
-  # https://github.com/mapnik/mapnik/issues/4201
-  patch do
-    url "https://github.com/mapnik/mapnik/commit/49e0ef18.patch?full_index=1"
-    sha256 "d8f12a85ad78f95e3cb2b3b5485e586c250fe2230a90874c0a70843189cc42f5"
-  end
 
   def install
     ENV.cxx11
+
+    ENV["PYTHON"] = Formula["python@3.9"].opt_bin/"python3"
 
     # Work around "error: no member named 'signbit' in the global namespace"
     # encountered when trying to detect boost regex in configure
@@ -89,6 +87,8 @@ class Mapnik < Formula
       WEBP_INCLUDES=#{webp}/include
       WEBP_LIBS=#{webp}/lib
     ]
+
+    inreplace "Makefile", "PYTHON = python", "PYTHON = python3"
 
     system "./configure", *args
     system "make"
